@@ -1,6 +1,8 @@
 package internal
 
-import "errors"
+import (
+	"errors"
+)
 
 const DEFAULT_DISCOUNT = 500
 
@@ -44,10 +46,18 @@ func NewCustomer(name string, age int, balance int, debt int, discount bool) *Cu
 	}
 }
 
-func CalcPrice(c Customer, price int) (int, error) {
-	if c.debt < price {
-		return 0, errors.New("debt is less than price")
+type Discounter interface {
+	CalcDiscount() (int, error)
+}
+
+func CalcPrice(c Discounter) (int, error) {
+	debt, err := c.CalcDiscount()
+	if err != nil {
+		return 0, err
 	}
-	sum := c.debt - price
-	return sum, nil
+	return debt, err
+}
+
+type Debtor interface {
+	WrOffDebt() error
 }
