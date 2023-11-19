@@ -14,13 +14,23 @@ type Customer struct {
 	discount bool
 }
 
-func (c *Customer) WrOffDebt() error {
-	if c.debt >= c.balance {
+type Overdue struct {
+	Customer
+}
+
+type Debtor interface {
+	GetBalance() int
+	GetDebt() int
+	WrOffDebt() error
+}
+
+func (o *Overdue) WrOffDebt() error {
+	if o.debt >= o.balance {
 		return errors.New("Not possible write off")
 	}
 
-	c.balance -= c.debt
-	c.debt = 0
+	o.balance -= o.debt
+	o.debt = 0
 
 	return nil
 }
@@ -36,14 +46,27 @@ func (c *Customer) CalcDiscount() (int, error) {
 	return result, nil
 }
 
-func NewCustomer(name string, age int, balance int, debt int, discount bool) *Customer {
-	return &Customer{
+func (o *Overdue) GetBalance() int {
+	return o.balance
+}
+
+func (o *Overdue) GetDebt() int {
+	return o.debt
+}
+
+func NewCustomer(name string, age int, balance int, debt int, discount bool) *Overdue {
+	c := &Customer{
 		Name:     name,
 		Age:      age,
 		balance:  balance,
 		debt:     debt,
 		discount: discount,
 	}
+
+	cc := &Overdue{
+		*c,
+	}
+	return cc
 }
 
 type Discounter interface {
@@ -56,8 +79,4 @@ func CalcPrice(c Discounter) (int, error) {
 		return 0, err
 	}
 	return debt, err
-}
-
-type Debtor interface {
-	WrOffDebt() error
 }
